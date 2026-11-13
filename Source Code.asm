@@ -160,3 +160,21 @@ BTNW = 240
 BTNY = 150
 BTNH = 50
 BTNSTEP = 70                
+
+; Macros
+CELLRECT MACRO rowreg, colreg, rcname
+    imul colreg, CELL
+    add  colreg, MARGIN
+    mov  rcname.left, colreg
+    add  colreg, CELL
+    mov  rcname.right, colreg
+    imul rowreg, CELL
+    add  rowreg, MARGIN
+    mov  rcname.top, rowreg
+    add  rowreg, CELL
+    mov  rcname.bottom, rowreg
+ENDM
+
+SETCOLOR MACRO hdcval, clr
+    invoke SetTextColor, hdcval, clr
+ENDM
