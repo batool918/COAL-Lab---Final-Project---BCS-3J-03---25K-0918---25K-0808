@@ -246,3 +246,10 @@ sSolved db "SOLVED!", 0
 sOver db "GAME OVER", 0
 levelName dd offset sEasy, offset sMedium, offset sHard
 stateName dd offset sPlaying, offset sSolved, offset sOver
+
+; Button Labels & Menu Command IDs
+menuTexts dd offset sNew, offset sLoad, offset sHelp, offset sExit
+menuCmds dd IDM_NEW, IDM_LOAD, IDM_HELP, IDM_EXIT
+levelTexts dd offset sEasy, offset sMedium, offset sHard, offset sBack
+levelCmds dd IDM_EASY, IDM_MEDIUM, IDM_HARD, IDM_MAIN
+
