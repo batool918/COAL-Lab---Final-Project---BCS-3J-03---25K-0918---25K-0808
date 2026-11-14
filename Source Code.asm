@@ -279,22 +279,18 @@ clientRect RECT <0, 0, CLIENTW, CLIENTH>
 statRect   RECT <0, STATY-6, CLIENTW, CLIENTH> 
 wndRect    RECT <0, 0, CLIENTW, CLIENTH>  
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+; GDI Object Handles
+hObjs      LABEL DWORD
+hFontBold  dd 0
+hFontNorm  dd 0
+hFontSmall dd 0
+hBrBg      dd 0
+hBrSel     dd 0
+hPenThin   dd 0
+hPenThick  dd 0
+hFontTitle dd 0
+hBrBtn     dd 0
+NOBJS = 9
+hBrWhite   dd 0 
 
 
