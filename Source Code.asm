@@ -219,6 +219,30 @@ BANK LABEL BYTE
     db "008700290750000806000600000203800040070090000109000000014062000000370000000500029"  
     db "638715294751429836492683157263857941875194362149236578514962783926378415387541629" 
 
-
-
-
+; Text & Names
+szClass db "SudokuWnd", 0
+szTitle db "Sudoku - x86 Assembly", 0
+szFace db "Arial", 0
+fileSave db "sudoku.sav", 0
+fileScores db "sudoku.scr", 0
+sGame db "Game", 0
+sNew db "New Game", 0
+sSave db "Save Game", 0
+sLoad db "Load Game", 0
+sExit db "Exit", 0
+sDiff db "Difficulty", 0
+sEasy db "Easy", 0
+sMedium db "Medium", 0
+sHard db "Hard", 0
+sHelp db "Help", 0
+sInstr db "Instructions", 0
+sScores db "High Scores", 0
+sBack db "Back", 0
+sMain db "Main Menu", 0
+sTitleMain db "SUDOKU", 0
+sTitleLevel db "Choose Difficulty", 0
+sPlaying db "Playing", 0
+sSolved db "SOLVED!", 0
+sOver db "GAME OVER", 0
+levelName dd offset sEasy, offset sMedium, offset sHard
+stateName dd offset sPlaying, offset sSolved, offset sOver
