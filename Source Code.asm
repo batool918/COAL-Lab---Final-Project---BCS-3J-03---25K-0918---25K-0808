@@ -253,3 +253,44 @@ menuCmds dd IDM_NEW, IDM_LOAD, IDM_HELP, IDM_EXIT
 levelTexts dd offset sEasy, offset sMedium, offset sHard, offset sBack
 levelCmds dd IDM_EASY, IDM_MEDIUM, IDM_HARD, IDM_MAIN
 
+; Game Messages & Formatting Strings
+fmtStat    db "Time %d:%02d    Moves: %d    Mistakes: %d/3    Hints left: %d", 0
+fmtLine2   db "Level: %s    Status: %s", 0
+fmtWin     db "Puzzle solved!", 0Dh, 0Ah, "Time: %d:%02d", 0Dh, 0Ah, "Moves: %d", 0
+fmtWinBest db "Puzzle solved!", 0Dh, 0Ah, "Time: %d:%02d", 0Dh, 0Ah, "Moves: %d", 0Dh, 0Ah, "New best time!", 0
+fmtScores  db "Best times in seconds (0 = no record yet)", 0Dh, 0Ah, 0Dh, 0Ah
+           db "Easy: %d", 0Dh, 0Ah, "Medium: %d", 0Dh, 0Ah, "Hard: %d", 0
+sInfoTitle db "Sudoku", 0
+sOverMsg   db "Game over! You made 3 mistakes.", 0Dh, 0Ah, "The board is now locked. Start a New Game from the menu.", 0
+sSavedMsg  db "Game saved to sudoku.sav", 0
+sSaveFail  db "Could not save the game.", 0
+sNoGame    db "There is no game to save yet. Start or load a game first.", 0
+sNoSave    db "No valid saved game was found.", 0
+sInstrMsg  db "Fill the grid so every row, column and 3x3 box contains 1-9 once.", 0Dh, 0Ah, 0Dh, 0Ah
+           db "Click a cell or use the arrow keys to select it.", 0Dh, 0Ah
+           db "1-9 : enter a digit      0 / Backspace / Delete : erase", 0Dh, 0Ah
+           db "H : hint (3 per game)    Q : quit", 0Dh, 0Ah, 0Dh, 0Ah
+           db "The menu bar (Game, Difficulty, Help) is available at all times.", 0Dh, 0Ah, 0Dh, 0Ah
+           db "Black = given clue (locked), Blue = your entry, Red = conflict.", 0Dh, 0Ah
+           db "A conflicting entry counts as a mistake. 3 mistakes = game over.", 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
