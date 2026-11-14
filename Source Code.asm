@@ -178,3 +178,33 @@ ENDM
 SETCOLOR MACRO hdcval, clr
     invoke SetTextColor, hdcval, clr
 ENDM
+
+
+.data
+; Game State
+PUZZLE db 81 dup(0)
+SOLUTION db 81 dup(0)
+BOARD db 81 dup(0)
+gDiff dd 0
+gSecs dd 0
+gMoves dd 0
+gMist dd 0
+gHints dd 3
+gState dd 0
+SAVESIZE = $ - PUZZLE
+
+gSel dd 0
+gScreen dd SCR_MENU
+scores dd 3 dup(0)
+chDigit db 0, 0
+
+
+
+
+
+
+
+
+
+
+
