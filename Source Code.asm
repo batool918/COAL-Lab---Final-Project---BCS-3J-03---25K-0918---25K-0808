@@ -274,6 +274,10 @@ sInstrMsg  db "Fill the grid so every row, column and 3x3 box contains 1-9 once.
            db "Black = given clue (locked), Blue = your entry, Red = conflict.", 0Dh, 0Ah
            db "A conflicting entry counts as a mistake. 3 mistakes = game over.", 0
 
+; Rectangles
+clientRect RECT <0, 0, CLIENTW, CLIENTH>      
+statRect   RECT <0, STATY-6, CLIENTW, CLIENTH> 
+wndRect    RECT <0, 0, CLIENTW, CLIENTH>  
 
 
 
