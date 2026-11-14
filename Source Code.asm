@@ -293,4 +293,11 @@ hBrBtn     dd 0
 NOBJS = 9
 hBrWhite   dd 0 
 
+; Uninitialized Windows Data
+.data?
+hInst  dd ?
+gHwnd  dd ?
+wc     WNDCLASSEX <>
+msg    MSG <>
+
 
