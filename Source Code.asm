@@ -390,3 +390,23 @@ wa_end:
     mov  eax, nDone
     ret
 WriteAll ENDP
+
+; Update High Score
+UpdateScore PROC
+    invoke ReadAll, offset fileScores, offset scores, 12
+    mov  edx, gDiff
+    mov  eax, gSecs
+    mov  ecx, [scores + edx*4]       ; previous best (0 = none)
+    test ecx, ecx
+    jz   us_better
+    cmp  eax, ecx
+    jae  us_worse
+us_better:
+    mov  [scores + edx*4], eax
+    invoke WriteAll, offset fileScores, offset scores, 12
+    mov  eax, 1
+    ret
+us_worse:
+    xor  eax, eax
+    ret
+UpdateScore ENDP
