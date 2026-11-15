@@ -361,3 +361,32 @@ hc_yes:
     mov  eax, 1
     ret
 HasConflict ENDP
+
+; File Handling
+ReadAll PROC USES ebx, pName:DWORD, pBuf:DWORD, nSize:DWORD
+    LOCAL nDone:DWORD
+    mov  nDone, 0
+    invoke CreateFileA, pName, GENERIC_READ, 0, NULL, OPEN_EXISTING, 80h, NULL
+    cmp  eax, INVALID_HANDLE_VALUE
+    je   ra_end                      ; file does not exist
+    mov  ebx, eax
+    invoke ReadFile, ebx, pBuf, nSize, addr nDone, NULL
+    invoke CloseHandle, ebx
+ra_end:
+    mov  eax, nDone
+    ret
+ReadAll ENDP
+
+WriteAll PROC USES ebx, pName:DWORD, pBuf:DWORD, nSize:DWORD
+    LOCAL nDone:DWORD
+    mov  nDone, 0
+    invoke CreateFileA, pName, GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, 80h, NULL
+    cmp  eax, INVALID_HANDLE_VALUE
+    je   wa_end
+    mov  ebx, eax
+    invoke WriteFile, ebx, pBuf, nSize, addr nDone, NULL
+    invoke CloseHandle, ebx
+wa_end:
+    mov  eax, nDone
+    ret
+WriteAll ENDP
