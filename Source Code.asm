@@ -362,7 +362,7 @@ hc_yes:
     ret
 HasConflict ENDP
 
-; File Handling
+; File Handling (Read / Write)
 ReadAll PROC USES ebx, pName:DWORD, pBuf:DWORD, nSize:DWORD
     LOCAL nDone:DWORD
     mov  nDone, 0
@@ -545,3 +545,41 @@ UseHint PROC USES ebx
 uh_end:
     ret
 UseHint ENDP
+
+; File Handling (Save / Load)
+SaveGame PROC
+    cmp  gScreen, SCR_GAME
+    je   sg_go
+    invoke MessageBoxA, gHwnd, offset sNoGame, offset sInfoTitle, MB_OK_INFO
+    ret ;nothing to save on a menu screen
+sg_go:
+    invoke WriteAll, offset fileSave, offset PUZZLE, SAVESIZE
+    mov  ecx, offset sSavedMsg
+    cmp  eax, SAVESIZE
+    je   sg_show
+    mov  ecx, offset sSaveFail
+sg_show:
+    invoke MessageBoxA, gHwnd, ecx, offset sInfoTitle, MB_OK_INFO
+    ret
+SaveGame ENDP
+
+LoadGame PROC
+    invoke ReadAll, offset fileSave, offset PUZZLE, SAVESIZE
+    test eax, eax
+    jz   lg_none ;no save file, nothing changed
+    cmp  eax, SAVESIZE
+    jne  lg_bad ;short file
+    cmp  gDiff, 2
+    ja   lg_bad  ;checks on loaded values
+    cmp  gState, 2
+    ja   lg_bad
+    mov  gScreen, SCR_GAME ;show loaded board
+    invoke Refresh
+    ret
+lg_bad:
+    mov  gScreen, SCR_MENU ;state may be half overwritten, go to main menu
+    invoke Refresh
+lg_none:
+    invoke MessageBoxA, gHwnd, offset sNoSave, offset sInfoTitle, MB_OK_ERROR
+    ret
+LoadGame ENDP
