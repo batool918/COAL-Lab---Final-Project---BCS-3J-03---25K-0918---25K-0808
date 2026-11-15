@@ -522,3 +522,26 @@ pd_paint:
 pd_end:
     ret
 PlaceDigit ENDP
+
+; Use Hint
+UseHint PROC USES ebx
+    cmp  gScreen, SCR_GAME
+    jne  uh_end
+    cmp  gState, 0
+    jne  uh_end
+    cmp  gHints, 0
+    je   uh_end
+    mov  ebx, gSel
+    cmp  BYTE PTR PUZZLE[ebx], 0
+    jne  uh_end ;clue cell
+    mov  al, SOLUTION[ebx]
+    cmp  BOARD[ebx], al
+    je   uh_end ;already correct
+    mov  BOARD[ebx], al
+    dec  gHints
+    inc  gMoves
+    invoke Refresh
+    invoke CheckEnd
+uh_end:
+    ret
+UseHint ENDP
