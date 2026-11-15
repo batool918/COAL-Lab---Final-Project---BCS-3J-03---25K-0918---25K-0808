@@ -455,3 +455,45 @@ cvt:
     invoke Refresh
     ret
 NewGame ENDP
+
+; Detect Game Over / Win
+CheckEnd PROC USES esi edi
+    LOCAL buf[160]:BYTE
+    cmp  gMist, MAXMIST
+    jb   ce_notlost
+    mov  gState, 2 ;too many mistakes
+    invoke Refresh
+    invoke MessageBoxA, gHwnd, offset sOverMsg, offset sInfoTitle, MB_OK_ERROR
+    ret
+ce_notlost:
+    cld
+    mov  edi, offset BOARD
+    mov  ecx, 81
+    xor  al, al
+    repne scasb ;look for empty cell
+    je   ce_end ;found one 
+    xor  esi, esi
+ce_chk:
+    invoke HasConflict, esi ;board is full, all cells conflict free
+    test eax, eax
+    jnz  ce_end
+    inc  esi
+    cmp  esi, 81
+    jb   ce_chk
+    mov  gState, 1 ;Win
+    invoke Refresh
+    invoke UpdateScore
+    mov  ecx, offset fmtWin
+    test eax, eax
+    jz   ce_show
+    mov  ecx, offset fmtWinBest
+ce_show:
+    mov  eax, gSecs
+    xor  edx, edx
+    mov  esi, 60
+    div  esi ; eax = minutes, edx = seconds
+    invoke wsprintfA, addr buf, ecx, eax, edx, gMoves
+    invoke MessageBoxA, gHwnd, addr buf, offset sInfoTitle, MB_OK_INFO
+ce_end:
+    ret
+CheckEnd ENDP
