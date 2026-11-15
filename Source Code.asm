@@ -497,3 +497,28 @@ ce_show:
 ce_end:
     ret
 CheckEnd ENDP
+
+; Place Digit
+PlaceDigit PROC USES ebx, digit:DWORD
+    cmp  gScreen, SCR_GAME
+    jne  pd_end ;board not showing
+    cmp  gState, 0
+    jne  pd_end ;game finished/locked
+    mov  ebx, gSel
+    cmp  BYTE PTR PUZZLE[ebx], 0
+    jne  pd_end ;given clues cannot be changed
+    mov  eax, digit
+    cmp  BYTE PTR BOARD[ebx], al
+    je   pd_end ;no change
+    mov  BYTE PTR BOARD[ebx], al
+    inc  gMoves
+    test eax, eax
+    jz   pd_paint ;erasing never counts as mistake
+    invoke HasConflict, ebx
+    add  gMist, eax ;conflict 
+pd_paint:
+    invoke Refresh
+    invoke CheckEnd
+pd_end:
+    ret
+PlaceDigit ENDP
