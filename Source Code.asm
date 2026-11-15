@@ -368,7 +368,7 @@ ReadAll PROC USES ebx, pName:DWORD, pBuf:DWORD, nSize:DWORD
     mov  nDone, 0
     invoke CreateFileA, pName, GENERIC_READ, 0, NULL, OPEN_EXISTING, 80h, NULL
     cmp  eax, INVALID_HANDLE_VALUE
-    je   ra_end                      ; file does not exist
+    je   ra_end ;file does not exist
     mov  ebx, eax
     invoke ReadFile, ebx, pBuf, nSize, addr nDone, NULL
     invoke CloseHandle, ebx
@@ -396,7 +396,7 @@ UpdateScore PROC
     invoke ReadAll, offset fileScores, offset scores, 12
     mov  edx, gDiff
     mov  eax, gSecs
-    mov  ecx, [scores + edx*4]       ; previous best (0 = none)
+    mov  ecx, [scores + edx*4] ;previous best
     test ecx, ecx
     jz   us_better
     cmp  eax, ecx
@@ -417,3 +417,41 @@ Refresh PROC
     invoke UpdateWindow, gHwnd
     ret
 Refresh ENDP
+
+; Select & Load Puzzle
+NewGame PROC USES esi edi
+    invoke GetTickCount
+    xor  edx, edx
+    mov  ecx, 3
+    div  ecx  ;edx = random number (0-2)
+    mov  eax, gDiff
+    imul eax, 3
+    add  eax, edx ;puzzle number (0-8)
+    imul eax, 162                    
+    mov  esi, offset BANK
+    add  esi, eax
+    cld
+    mov  edi, offset PUZZLE
+    mov  ecx, 81
+    rep  movsb ;copy puzzle  
+    mov  edi, offset SOLUTION
+    mov  ecx, 81
+    rep  movsb ;copy solution
+    mov  esi, offset PUZZLE
+    mov  edi, offset BOARD
+    mov  ecx, 81
+    rep  movsb ;working board 
+    mov  ecx, 243                   
+cvt:
+    sub  BYTE PTR PUZZLE[ecx-1], '0'
+    loop cvt
+    mov  gSecs, 0
+    mov  gMoves, 0
+    mov  gMist, 0
+    mov  gHints, 3
+    mov  gState, 0
+    mov  gSel, 0
+    mov  gScreen, SCR_GAME ;show board
+    invoke Refresh
+    ret
+NewGame ENDP
