@@ -300,4 +300,20 @@ gHwnd  dd ?
 wc     WNDCLASSEX <>
 msg    MSG <>
 
+.code
 
+;returns box number of cell 
+BoxOf PROC USES ecx edx, row:DWORD, col:DWORD
+    mov  eax, row
+    xor  edx, edx
+    mov  ecx, 3
+    div  ecx                    
+    imul eax, 3
+    push eax
+    mov  eax, col
+    xor  edx, edx
+    div  ecx                    
+    pop  edx
+    add  eax, edx
+    ret
+BoxOf ENDP
