@@ -302,7 +302,7 @@ msg    MSG <>
 
 .code
 
-;returns box number of cell 
+; Box Number of Cell 
 BoxOf PROC USES ecx edx, row:DWORD, col:DWORD
     mov  eax, row
     xor  edx, edx
@@ -317,3 +317,47 @@ BoxOf PROC USES ecx edx, row:DWORD, col:DWORD
     add  eax, edx
     ret
 BoxOf ENDP
+
+; Core Rule Check
+HasConflict PROC USES ebx esi edi, idx:DWORD
+    LOCAL myRow:DWORD, myCol:DWORD, myBox:DWORD
+    mov  esi, idx
+    movzx ebx, BYTE PTR BOARD[esi] ;digit of the cell
+    test ebx, ebx
+    jz   hc_no ;empty cell never conflicts
+    mov  eax, esi
+    xor  edx, edx
+    mov  ecx, 9
+    div  ecx 
+    mov  myRow, eax               
+    mov  myCol, edx                     
+    invoke BoxOf, myRow, myCol
+    mov  myBox, eax                      
+    xor  edi, edi ;other cell index (starts at 0)
+hc_loop:
+    cmp  edi, esi
+    je   hc_next ;skip cell itself
+    cmp  BYTE PTR BOARD[edi], bl
+    jne  hc_next ;skip different digit
+    mov  eax, edi
+    xor  edx, edx
+    mov  ecx, 9
+    div  ecx 
+    cmp  eax, myRow
+    je   hc_yes ;same row
+    cmp  edx, myCol
+    je   hc_yes ;same column
+    invoke BoxOf, eax, edx
+    cmp  eax, myBox
+    je   hc_yes ;same box
+hc_next:
+    inc  edi
+    cmp  edi, 81
+    jb   hc_loop
+hc_no:
+    xor  eax, eax
+    ret
+hc_yes:
+    mov  eax, 1
+    ret
+HasConflict ENDP
