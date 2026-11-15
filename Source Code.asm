@@ -410,3 +410,10 @@ us_worse:
     xor  eax, eax
     ret
 UpdateScore ENDP
+
+; Repaint Window
+Refresh PROC
+    invoke InvalidateRect, gHwnd, NULL, FALSE
+    invoke UpdateWindow, gHwnd
+    ret
+Refresh ENDP
