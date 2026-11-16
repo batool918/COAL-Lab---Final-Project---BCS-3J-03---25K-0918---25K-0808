@@ -222,7 +222,7 @@ BANK LABEL BYTE
 ; Text & Names
 szClass db "SudokuWnd", 0
 szTitle db "Sudoku - x86 Assembly", 0
-szFace db "Arial", 0
+szFace db "Georgia", 0
 fileSave db "sudoku.sav", 0
 fileScores db "sudoku.scr", 0
 sGame db "Game", 0
