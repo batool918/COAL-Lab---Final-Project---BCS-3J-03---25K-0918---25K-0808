@@ -1007,3 +1007,53 @@ handled:
     xor  eax, eax
     ret
 WndProc ENDP
+
+
+; Program Initialization & Main Message Loop
+start:
+    invoke GetModuleHandleA, NULL
+    mov  hInst, eax
+
+    mov  wc.cbSize, SIZEOF WNDCLASSEX
+    mov  wc.style, 3                         
+    mov  wc.lpfnWndProc, offset WndProc
+    mov  wc.cbClsExtra, 0
+    mov  wc.cbWndExtra, 0
+    mov  eax, hInst
+    mov  wc.hInstance, eax
+    mov  wc.hIcon, 0
+    invoke LoadCursorA, NULL, IDC_ARROW
+    mov  wc.hCursor, eax
+    mov  wc.hbrBackground, 0                
+    mov  wc.lpszMenuName, 0
+    mov  wc.lpszClassName, offset szClass
+    mov  wc.hIconSm, 0
+    invoke RegisterClassExA, offset wc
+
+    invoke AdjustWindowRect, offset wndRect, WINSTYLE, 1
+    mov  eax, wndRect.right
+    sub  eax, wndRect.left ;total width
+    mov  ecx, wndRect.bottom
+    sub  ecx, wndRect.top ;total height
+    push ecx
+    push eax
+    invoke BuildMenu
+    pop  edx ;width
+    pop  ecx ;height
+    invoke CreateWindowExA, 0, offset szClass, offset szTitle, WINSTYLE, \
+           CW_USEDEFAULT, CW_USEDEFAULT, edx, ecx, NULL, eax, hInst, NULL
+    mov  ebx, eax
+    invoke ShowWindow, ebx, SW_SHOW
+    invoke UpdateWindow, ebx
+
+msg_loop:
+    invoke GetMessageA, offset msg, NULL, 0, 0
+    cmp  eax, 0
+    jle  quit                                
+    invoke TranslateMessage, offset msg
+    invoke DispatchMessageA, offset msg
+    jmp  msg_loop
+quit:
+    invoke ExitProcess, msg.wParam
+
+end start
