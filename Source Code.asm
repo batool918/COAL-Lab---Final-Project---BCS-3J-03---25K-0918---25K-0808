@@ -651,3 +651,96 @@ btn_loop:
     ret
 DrawButtons ENDP
 
+; Paint Board
+DrawBoard PROC USES ebx esi edi, hdc:DWORD
+    LOCAL rc:RECT
+    LOCAL buf[100]:BYTE
+    invoke FillRect, hdc, offset clientRect, hBrBg
+    invoke SetBkMode, hdc, TRANSPARENT
+    invoke SetTextAlign, hdc, TA_CENTER
+
+    xor  esi, esi ;esi = cell index (0-80)
+cell_loop:
+    mov  eax, esi
+    xor  edx, edx
+    mov  ecx, 9
+    div  ecx 
+    CELLRECT eax, edx, rc ;pixel rectangle of cell
+
+    mov  ebx, hBrWhite ;background
+    cmp  esi, gSel
+    jne  cell_fill
+    mov  ebx, hBrSel
+cell_fill:
+    invoke FillRect, hdc, addr rc, ebx
+
+    movzx eax, BYTE PTR BOARD[esi]
+    test eax, eax
+    jz   cell_next ;empty cell
+    add  al, '0'
+    mov  chDigit, al ;digit as ASCII character
+
+    mov  ebx, 0DB4BD1h ;player entry
+    mov  edi, hFontNorm
+    cmp  BYTE PTR PUZZLE[esi], 0
+    je   cell_conf
+    mov  ebx, 061304Fh ;given clue
+    mov  edi, hFontBold
+cell_conf:
+    invoke HasConflict, esi
+    test eax, eax
+    jz   cell_text
+    mov  ebx, 03E3E87h ;conflict
+cell_text:
+    SETCOLOR hdc, ebx
+    invoke SelectObject, hdc, edi
+    mov  eax, rc.left
+    add  eax, CELL / 2 ;centred horizontally 
+    mov  edx, rc.top
+    add  edx, 10
+    invoke TextOutA, hdc, eax, edx, offset chDigit, 1
+cell_next:
+    inc  esi
+    cmp  esi, 81
+    jb   cell_loop
+
+    xor  esi, esi
+line_loop: ;grid lines (every 3rd line is thick, separates the 3x3 boxes)
+    mov  eax, esi
+    xor  edx, edx
+    mov  ecx, 3
+    div  ecx
+    test edx, edx
+    mov  eax, hPenThin
+    jnz  line_pen
+    mov  eax, hPenThick
+line_pen:
+    invoke SelectObject, hdc, eax
+    mov  ebx, esi
+    imul ebx, CELL
+    add  ebx, MARGIN ;pixel position of line number esi
+    invoke MoveToEx, hdc, ebx, MARGIN, NULL
+    invoke LineTo,   hdc, ebx, GRIDEND ;vertical line
+    invoke MoveToEx, hdc, MARGIN, ebx, NULL
+    invoke LineTo,   hdc, GRIDEND, ebx ;horizontal line
+    inc  esi
+    cmp  esi, 10
+    jb   line_loop
+
+    invoke SetTextAlign, hdc, TA_LEFT ;status text
+    invoke SelectObject, hdc, hFontSmall
+    SETCOLOR hdc, 061304Fh
+    mov  eax, gSecs
+    xor  edx, edx
+    mov  ecx, 60
+    div  ecx                         
+    invoke wsprintfA, addr buf, offset fmtStat, eax, edx, gMoves, gMist, gHints
+    invoke TextOutA, hdc, MARGIN, STATY, addr buf, eax
+    mov  eax, gDiff
+    mov  ecx, [levelName + eax*4]
+    mov  eax, gState
+    mov  edx, [stateName + eax*4]
+    invoke wsprintfA, addr buf, offset fmtLine2, ecx, edx
+    invoke TextOutA, hdc, MARGIN, STATY + 22, addr buf, eax
+    ret
+DrawBoard ENDP
