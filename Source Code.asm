@@ -744,3 +744,266 @@ line_pen:
     invoke TextOutA, hdc, MARGIN, STATY + 22, addr buf, eax
     ret
 DrawBoard ENDP
+
+; Windows Messages
+WndProc PROC USES ebx esi edi, hWnd:DWORD, uMsg:DWORD, wParam:DWORD, lParam:DWORD
+    LOCAL ps:PAINTSTRUCT
+    LOCAL buf[160]:BYTE
+
+    mov  eax, uMsg
+    cmp  eax, WM_CREATE
+    je   OnCreate
+    cmp  eax, WM_PAINT
+    je   OnPaint
+    cmp  eax, WM_LBUTTONDOWN
+    je   OnClick
+    cmp  eax, WM_KEYDOWN
+    je   OnKeyDown
+    cmp  eax, WM_CHAR
+    je   OnChar
+    cmp  eax, WM_COMMAND
+    je   OnCommand
+    cmp  eax, WM_TIMER
+    je   OnTimer
+    cmp  eax, WM_DESTROY
+    je   OnDestroy
+    invoke DefWindowProcA, hWnd, uMsg, wParam, lParam   ;anything else
+    ret
+
+OnCreate:
+    mov  eax, hWnd
+    mov  gHwnd, eax
+    invoke MakeFont, 28, 700
+    mov  hFontBold, eax
+    invoke MakeFont, 28, 400
+    mov  hFontNorm, eax
+    invoke MakeFont, 18, 400
+    mov  hFontSmall, eax
+    invoke MakeFont, 40, 700
+    mov  hFontTitle, eax
+    invoke CreateSolidBrush, 0FFF0FBh ;background
+    mov  hBrBg, eax
+    invoke CreateSolidBrush, 0FFD4F2h ;selected cell
+    mov  hBrSel, eax
+    invoke CreateSolidBrush, 0875478h ;menu buttons
+    mov  hBrBtn, eax
+    invoke CreatePen, 0, 1, 061304Fh ;thin line
+    mov  hPenThin, eax
+    invoke CreatePen, 0, 3, 061304Fh  ;thick line
+    mov  hPenThick, eax
+    invoke GetStockObject, 0 ;WHITE_BRUSH
+    mov  hBrWhite, eax
+    invoke SetTimer, hWnd, ID_TIMER, 1000, NULL
+    jmp  handled ;start on main menu screen
+
+OnPaint:
+    invoke BeginPaint, hWnd, addr ps
+    cmp  gScreen, SCR_GAME
+    je   pt_game
+    mov  eax, offset menuTexts ;main menu screen
+    mov  ecx, offset sTitleMain
+    cmp  gScreen, SCR_LEVEL
+    jne  pt_btn
+    mov  eax, offset levelTexts ;difficulty screen
+    mov  ecx, offset sTitleLevel
+pt_btn:
+    invoke DrawButtons, ps.hdc, eax, ecx
+    jmp  pt_done
+pt_game:
+    invoke DrawBoard, ps.hdc
+pt_done:
+    invoke EndPaint, hWnd, addr ps
+    jmp  handled
+
+OnClick:
+    mov  eax, lParam
+    and  eax, 0FFFFh ;x
+    mov  edx, lParam
+    shr  edx, 16 ;y
+    cmp  gScreen, SCR_GAME
+    je   click_cell
+    ;menu screens button
+    sub  eax, BTNX
+    cmp  eax, BTNW
+    jae  handled ;left or right of buttons
+    sub  edx, BTNY
+    cmp  edx, BTNSTEP * 4
+    jae  handled ;above or below buttons
+    mov  eax, edx
+    xor  edx, edx
+    mov  ecx, BTNSTEP
+    div  ecx ;eax = button number, edx = offset inside slot
+    cmp  edx, BTNH
+    jae  handled ;in gap between two buttons
+    mov  esi, offset menuCmds
+    cmp  gScreen, SCR_LEVEL
+    jne  click_send
+    mov  esi, offset levelCmds
+click_send: ;act as if that menu item was chosen
+    invoke SendMessageA, hWnd, WM_COMMAND, DWORD PTR [esi + eax*4], 0
+    jmp  handled
+click_cell:
+    sub  eax, MARGIN
+    sub  edx, MARGIN
+    cmp  eax, GRIDSZ
+    jae  handled ;outside grid
+    cmp  edx, GRIDSZ
+    jae  handled
+    mov  ebx, edx ;keep y
+    mov  ecx, CELL
+    xor  edx, edx
+    div  ecx
+    mov  esi, eax ;esi = column
+    mov  eax, ebx
+    xor  edx, edx
+    div  ecx ;eax = row
+    imul eax, 9
+    add  eax, esi
+    mov  gSel, eax
+    invoke InvalidateRect, hWnd, NULL, FALSE
+    jmp  handled
+
+OnKeyDown: ;arrow keys and delete
+    cmp  gScreen, SCR_GAME
+    jne  handled ;only used on board
+    cmp  wParam, VK_DELETE
+    jne  kd_arrows
+    invoke PlaceDigit, 0
+    jmp  handled
+kd_arrows:
+    mov  eax, gSel
+    xor  edx, edx
+    mov  ecx, 9
+    div  ecx ;eax = row, edx = col
+    mov  ecx, gSel
+    cmp  wParam, VK_LEFT
+    jne  kd_right
+    test edx, edx
+    jz   handled ;already in first column
+    dec  ecx
+    jmp  kd_set
+kd_right:
+    cmp  wParam, VK_RIGHT
+    jne  kd_up
+    cmp  edx, 8
+    je   handled
+    inc  ecx
+    jmp  kd_set
+kd_up:
+    cmp  wParam, VK_UP
+    jne  kd_down
+    test eax, eax
+    jz   handled
+    sub  ecx, 9
+    jmp  kd_set
+kd_down:
+    cmp  wParam, VK_DOWN
+    jne  handled
+    cmp  eax, 8
+    je   handled
+    add  ecx, 9
+kd_set:
+    mov  gSel, ecx
+    invoke InvalidateRect, hWnd, NULL, FALSE
+    jmp  handled
+
+OnChar: ;digits, erase, hint, quit
+    mov  eax, wParam
+    cmp  eax, 8 ;backspace
+    je   ch_erase
+    cmp  eax, '0'
+    jb   ch_letter
+    cmp  eax, '9'
+    ja   ch_letter
+    sub  eax, '0' ;'0' = erase, '1'..'9' = digit
+    invoke PlaceDigit, eax
+    jmp  handled
+ch_erase:
+    invoke PlaceDigit, 0
+    jmp  handled
+ch_letter:
+    or   eax, 20h ;to lower case
+    cmp  eax, 'h'
+    jne  ch_quit
+    invoke UseHint
+    jmp  handled
+ch_quit:
+    cmp  eax, 'q'
+    jne  handled
+    invoke DestroyWindow, hWnd
+    jmp  handled
+
+OnCommand: ;menu commands
+    movzx eax, WORD PTR wParam
+    cmp  eax, IDM_NEW
+    jne  cm_main
+    mov  gScreen, SCR_LEVEL;new game
+    invoke Refresh
+    jmp  handled
+cm_main:
+    cmp  eax, IDM_MAIN
+    jne  cm_save
+    mov  gScreen, SCR_MENU
+    invoke Refresh
+    jmp  handled
+cm_save:
+    cmp  eax, IDM_SAVE
+    jne  cm_load
+    invoke SaveGame
+    jmp  handled
+cm_load:
+    cmp  eax, IDM_LOAD
+    jne  cm_exit
+    invoke LoadGame
+    jmp  handled
+cm_exit:
+    cmp  eax, IDM_EXIT
+    jne  cm_level
+    invoke DestroyWindow, hWnd
+    jmp  handled
+cm_level:
+    cmp  eax, IDM_EASY
+    jb   cm_help
+    cmp  eax, IDM_HARD
+    ja   cm_help
+    sub  eax, IDM_EASY ;0, 1 or 2
+    mov  gDiff, eax
+    invoke NewGame ;new puzzle of chosen level
+    jmp  handled
+cm_help:
+    cmp  eax, IDM_HELP
+    jne  cm_scores
+    invoke MessageBoxA, hWnd, offset sInstrMsg, offset sInstr, MB_OK_INFO
+    jmp  handled
+cm_scores:
+    cmp  eax, IDM_SCORES
+    jne  handled
+    invoke ReadAll, offset fileScores, offset scores, 12
+    invoke wsprintfA, addr buf, offset fmtScores, scores, scores+4, scores+8
+    invoke MessageBoxA, hWnd, addr buf, offset sScores, MB_OK_INFO
+    jmp  handled
+
+OnTimer: ;once per second
+    cmp  gScreen, SCR_GAME
+    jne  handled ;clock only runs on board
+    cmp  gState, 0
+    jne  handled ;clock stops when game ends
+    inc  gSecs
+    invoke InvalidateRect, hWnd, offset statRect, FALSE
+    jmp  handled
+
+OnDestroy:
+    invoke KillTimer, hWnd, ID_TIMER
+    mov  esi, offset hObjs
+    mov  ebx, NOBJS
+del_loop:
+    invoke DeleteObject, DWORD PTR [esi]
+    add  esi, 4
+    dec  ebx
+    jnz  del_loop
+    invoke PostQuitMessage, 0
+
+handled:
+    xor  eax, eax
+    ret
+WndProc ENDP
