@@ -616,3 +616,38 @@ BuildMenu PROC USES ebx esi
     ret
 BuildMenu ENDP
 
+; Paint Menu Screen
+DrawButtons PROC USES ebx esi edi, hdc:DWORD, pTexts:DWORD, pTitle:DWORD
+    LOCAL rc:RECT
+    invoke FillRect, hdc, offset clientRect, hBrBg
+    invoke SetBkMode, hdc, TRANSPARENT
+    invoke SetTextAlign, hdc, TA_CENTER
+    SETCOLOR hdc, 061304Fh
+    invoke SelectObject, hdc, hFontTitle
+    invoke lstrlenA, pTitle
+    invoke TextOutA, hdc, CLIENTW / 2, 60, pTitle, eax
+    invoke SelectObject, hdc, hFontBold
+    SETCOLOR hdc, 0FFFFFFh   ;white label text
+    xor  esi, esi            ;button number (0-3)
+btn_loop:
+    mov  eax, esi
+    imul eax, BTNSTEP
+    add  eax, BTNY
+    mov  rc.top, eax          ;button rectangle
+    add  eax, BTNH
+    mov  rc.bottom, eax
+    mov  rc.left, BTNX
+    mov  rc.right, BTNX + BTNW
+    invoke FillRect, hdc, addr rc, hBrBtn
+    mov  eax, pTexts
+    mov  ebx, [eax + esi*4]    ;button label
+    invoke lstrlenA, ebx
+    mov  edx, rc.top
+    add  edx, 11
+    invoke TextOutA, hdc, CLIENTW / 2, edx, ebx, eax
+    inc  esi
+    cmp  esi, 4
+    jb   btn_loop
+    ret
+DrawButtons ENDP
+
