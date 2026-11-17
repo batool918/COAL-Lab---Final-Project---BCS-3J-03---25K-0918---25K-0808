@@ -583,3 +583,36 @@ lg_none:
     invoke MessageBoxA, gHwnd, offset sNoSave, offset sInfoTitle, MB_OK_ERROR
     ret
 LoadGame ENDP
+
+; WM_CREATE Helpers
+MakeFont PROC, height:DWORD, weight:DWORD
+    invoke CreateFontA, height, 0, 0, 0, weight, 0, 0, 0, 1, 0, 0, 0, 0, offset szFace
+    ret
+MakeFont ENDP
+
+BuildMenu PROC USES ebx esi
+    invoke CreateMenu
+    mov  ebx, eax                    
+    invoke CreatePopupMenu ;game
+    mov  esi, eax
+    invoke AppendMenuA, esi, MF_STRING, IDM_NEW,  offset sNew
+    invoke AppendMenuA, esi, MF_STRING, IDM_SAVE, offset sSave
+    invoke AppendMenuA, esi, MF_STRING, IDM_LOAD, offset sLoad
+    invoke AppendMenuA, esi, MF_STRING, IDM_MAIN, offset sMain
+    invoke AppendMenuA, esi, MF_STRING, IDM_EXIT, offset sExit
+    invoke AppendMenuA, ebx, MF_POPUP, esi, offset sGame
+    invoke CreatePopupMenu      ;difficulty
+    mov  esi, eax
+    invoke AppendMenuA, esi, MF_STRING, IDM_EASY,   offset sEasy
+    invoke AppendMenuA, esi, MF_STRING, IDM_MEDIUM, offset sMedium
+    invoke AppendMenuA, esi, MF_STRING, IDM_HARD,   offset sHard
+    invoke AppendMenuA, ebx, MF_POPUP, esi, offset sDiff
+    invoke CreatePopupMenu       ;help
+    mov  esi, eax
+    invoke AppendMenuA, esi, MF_STRING, IDM_HELP,   offset sInstr
+    invoke AppendMenuA, esi, MF_STRING, IDM_SCORES, offset sScores
+    invoke AppendMenuA, ebx, MF_POPUP, esi, offset sHelp
+    mov  eax, ebx
+    ret
+BuildMenu ENDP
+
